@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Prediction of Activity Classes from the Weight Lifting Exercise Dataset (HAR)</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: rgb(88, 72, 246)
+   }
+
+   pre .number {
+     color: rgb(0, 0, 205);
+   }
+
+   pre .comment {
+     color: rgb(76, 136, 107);
+   }
+
+   pre .keyword {
+     color: rgb(0, 0, 255);
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: rgb(3, 106, 7);
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+</head>
+
+<body>
+<h1>Prediction of Activity Classes from the Weight Lifting Exercise Dataset (HAR)</h1>
+
+<p>The Weight Lifting Exercise Dataset is used for Human Activity Recognition (HAR) 
+and contains data from accelerometeres attached to the test subjects forearm, 
+arm, and belt. The subjects were asked to perform dumbbell curls in five different
+manners: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E). This information is contained in the <code>classe</code> variable of the dataset.</p>
+
+<p>Goal of this analysis is to predict the class from the available data. The data 
+was downloaded from the <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">Coursera page</a>. </p>
+
+<h2>Prerequisites</h2>
+
+<p>In order to perform the analysis, some <code>R</code> libraries need to be loaded. Most of the
+analyses are carried out with the <code>caret</code> package:</p>
+
+<pre><code class="r">library(caret)
+</code></pre>
+
+<pre><code>## Loading required package: lattice
+## Loading required package: ggplot2
+</code></pre>
+
+<pre><code class="r">library(randomForest)
+</code></pre>
+
+<pre><code>## randomForest 4.6-7
+## Type rfNews() to see new features/changes/bug fixes.
+</code></pre>
+
+<pre><code class="r">library(nnet)
+library(e1071)
+</code></pre>
+
+<h2>Preprocessing the data</h2>
+
+<p>First, the downloaded data is read into <code>R</code> via the <code>read.csv()</code> function:</p>
+
+<pre><code class="r">path.raw &lt;- &quot;C:/data-sync/coursera/data-science-08-machine-learning/assignment01/&quot;
+path.dat &lt;- paste0(path.raw, &quot;&quot;)
+setwd(path.dat)
+dat.all.raw &lt;- read.csv(&quot;pml-training.csv&quot;)
+</code></pre>
+
+<p>The data seems to contain individual measurements as well as summary measurements,
+as indicated by the fact that some variables are missing when the variable <code>new_window</code>
+has the value <code>&quot;no&quot;</code> (not shown here for brevity). These missing variables relate to 
+skew and kurtosis of measurements, which can only be calulated as a summary 
+on multiple measurements. These measurements that are summary measures (as indicated by <code>new_window==&quot;yes&quot;</code>) are removed from the data.</p>
+
+<pre><code class="r">dat.all &lt;- subset(dat.all.raw, dat.all.raw$new_window != &quot;yes&quot;)
+</code></pre>
+
+<pre><code class="r">## vars:
+vars.all &lt;- c(&quot;classe&quot;, &quot;roll_belt&quot;, &quot;pitch_belt&quot;, &quot;yaw_belt&quot;, &quot;total_accel_belt&quot;, 
+    &quot;gyros_belt_x&quot;, &quot;gyros_belt_y&quot;, &quot;gyros_belt_z&quot;, &quot;accel_belt_x&quot;, &quot;accel_belt_y&quot;, 
+    &quot;accel_belt_z&quot;, &quot;magnet_belt_x&quot;, &quot;magnet_belt_y&quot;, &quot;magnet_belt_z&quot;, &quot;roll_arm&quot;, 
+    &quot;pitch_arm&quot;, &quot;yaw_arm&quot;, &quot;total_accel_arm&quot;, &quot;gyros_arm_x&quot;, &quot;gyros_arm_y&quot;, 
+    &quot;gyros_arm_z&quot;, &quot;accel_arm_x&quot;, &quot;accel_arm_y&quot;, &quot;accel_arm_z&quot;, &quot;magnet_arm_x&quot;, 
+    &quot;magnet_arm_y&quot;, &quot;magnet_arm_z&quot;, &quot;roll_dumbbell&quot;, &quot;pitch_dumbbell&quot;, &quot;yaw_dumbbell&quot;, 
+    &quot;gyros_dumbbell_x&quot;, &quot;gyros_dumbbell_y&quot;, &quot;gyros_dumbbell_z&quot;, &quot;accel_dumbbell_x&quot;, 
+    &quot;accel_dumbbell_y&quot;, &quot;accel_dumbbell_z&quot;, &quot;magnet_dumbbell_x&quot;, &quot;magnet_dumbbell_y&quot;, 
+    &quot;magnet_dumbbell_z&quot;, &quot;roll_forearm&quot;, &quot;pitch_forearm&quot;, &quot;yaw_forearm&quot;, &quot;total_accel_forearm&quot;, 
+    &quot;gyros_forearm_x&quot;, &quot;gyros_forearm_y&quot;, &quot;gyros_forearm_z&quot;, &quot;accel_forearm_x&quot;, 
+    &quot;accel_forearm_y&quot;, &quot;accel_forearm_z&quot;, &quot;magnet_forearm_x&quot;, &quot;magnet_forearm_y&quot;, 
+    &quot;magnet_forearm_z&quot;)
+
+dat.all.clean &lt;- dat.all[vars.all]
+</code></pre>
+
+<h2>Splitting the data in training, validation, and test set</h2>
+
+<p>In order to train the machine learning models, the data is split into three parts. 
+The training set includes a third of the data, a validation set consists of 
+another third, and finally a test set consisting of the final third of the data. 
+The validation set will 
+be used to evaluate the out-of-sample error of the machine learning models and 
+to train a stacked model.</p>
+
+<p>The fraction of a third of the data for the training set was chosen
+due to the fact that computing the models (especially the random forest models,
+see below) takes quite some time on my machine (about 30 min).</p>
+
+<pre><code class="r">set.seed(42)
+wch.fold &lt;- createFolds(dat.all.clean$classe, k = 3, list = FALSE)
+dat.train &lt;- dat.all.clean[wch.fold == 1, ]
+dat.val &lt;- dat.all.clean[wch.fold == 2, ]
+dat.test &lt;- dat.all.clean[wch.fold == 3, ]
+</code></pre>
+
+<h2>Training individual models</h2>
+
+<p>This section describes the different models that were used. All of the models
+were trained on the training data set, and then used to predict the classes
+of the validation data set to get a first hint at the out-of-sample error. </p>
+
+<h3>Random forest model</h3>
+
+<p>Random forest models are widely used in machine learning because they often 
+give very good out-of-the box predictions without knowing much about the data,
+as it is not influenced by outliers, and also takes into account 
+interactions by design.
+Hence, a random forest model is used as a starting point here. </p>
+
+<p>It is fitted with the standard options of the <code>caret</code> package, which uses
+25 iterations of bootstrapping within the training data set to select 
+the best model. </p>
+
+<pre><code class="r">set.seed(12)
+caret.rf &lt;- train(classe ~ roll_belt + pitch_belt + yaw_belt + total_accel_belt + 
+    gyros_belt_x + gyros_belt_y + gyros_belt_z + accel_belt_x + accel_belt_y + 
+    accel_belt_z + magnet_belt_x + magnet_belt_y + magnet_belt_z + roll_arm + 
+    pitch_arm + yaw_arm + total_accel_arm + gyros_arm_x + gyros_arm_y + gyros_arm_z + 
+    accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + 
+    magnet_arm_z + roll_dumbbell + pitch_dumbbell + yaw_dumbbell + gyros_dumbbell_x + 
+    gyros_dumbbell_y + gyros_dumbbell_z + accel_dumbbell_x + accel_dumbbell_y + 
+    accel_dumbbell_z + magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z + 
+    roll_forearm + pitch_forearm + yaw_forearm + total_accel_forearm + gyros_forearm_x + 
+    gyros_forearm_y + gyros_forearm_z + accel_forearm_x + accel_forearm_y + 
+    accel_forearm_z + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, 
+    data = dat.train, method = &quot;rf&quot;)
+</code></pre>
+
+<pre><code>## Warning: package &#39;e1071&#39; was built under R version 3.0.3
+</code></pre>
+
+<p>The training time of this algorithm is actually quite long, on my machine this
+took 33 minutes. After training the model, we can predict the classes in the
+training data set and in the validation data set:</p>
+
+<pre><code class="r">pred.caret.rf.train &lt;- predict(caret.rf$finalModel)
+pred.caret.rf.val &lt;- predict(caret.rf$finalModel, newdata = dat.val)
+</code></pre>
+
+<p>The performance in the training set is really good:</p>
+
+<pre><code class="r">confusionMatrix(pred.caret.rf.train, dat.train$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1817   24    0    0    0
+##          B    3 1201   21    1    4
+##          C    2   12 1090   21    3
+##          D    0    0    6 1026    6
+##          E    1    2    0    1 1163
+## 
+## Overall Statistics
+##                                        
+##                Accuracy : 0.983        
+##                  95% CI : (0.98, 0.986)
+##     No Information Rate : 0.285        
+##     P-Value [Acc &gt; NIR] : &lt;2e-16       
+##                                        
+##                   Kappa : 0.979        
+##  Mcnemar&#39;s Test P-Value : NA           
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.997    0.969    0.976    0.978    0.989
+## Specificity             0.995    0.994    0.993    0.998    0.999
+## Pos Pred Value          0.987    0.976    0.966    0.988    0.997
+## Neg Pred Value          0.999    0.993    0.995    0.996    0.998
+## Prevalence              0.285    0.193    0.174    0.164    0.184
+## Detection Rate          0.284    0.188    0.170    0.160    0.182
+## Detection Prevalence    0.287    0.192    0.176    0.162    0.182
+## Balanced Accuracy       0.996    0.982    0.984    0.988    0.994
+</code></pre>
+
+<p>Actually, the performance is so good that it seems likely we have overfitted
+our model to the data. To test this assumption, we check on the performance
+of the model in the validation data set.</p>
+
+<pre><code class="r">confusionMatrix(pred.caret.rf.val, dat.val$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1809   16    0    0    0
+##          B    3 1206   16    1    2
+##          C   10   18 1100   23    5
+##          D    1    0    1 1024    5
+##          E    1    0    0    1 1164
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.984         
+##                  95% CI : (0.981, 0.987)
+##     No Information Rate : 0.285         
+##     P-Value [Acc &gt; NIR] : &lt; 2e-16       
+##                                         
+##                   Kappa : 0.98          
+##  Mcnemar&#39;s Test P-Value : 1.22e-07      
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.992    0.973    0.985    0.976    0.990
+## Specificity             0.997    0.996    0.989    0.999    1.000
+## Pos Pred Value          0.991    0.982    0.952    0.993    0.998
+## Neg Pred Value          0.997    0.993    0.997    0.995    0.998
+## Prevalence              0.285    0.194    0.174    0.164    0.184
+## Detection Rate          0.282    0.188    0.172    0.160    0.182
+## Detection Prevalence    0.285    0.192    0.180    0.161    0.182
+## Balanced Accuracy       0.994    0.984    0.987    0.987    0.995
+</code></pre>
+
+<p>Given that the performance of the prediction algorithm remains almost unchanged
+in the validation data set, we seem not to have overfitted the data. </p>
+
+<p>Regarding the variable importance gives some clue to which variables 
+are most important:</p>
+
+<pre><code class="r">varImp(caret.rf)
+</code></pre>
+
+<pre><code>## rf variable importance
+## 
+##   only 20 most important variables shown (out of 51)
+## 
+##                   Overall
+## roll_belt          100.00
+## pitch_forearm       64.13
+## yaw_belt            60.32
+## magnet_dumbbell_z   50.53
+## pitch_belt          44.84
+## magnet_dumbbell_y   42.91
+## roll_forearm        36.30
+## accel_dumbbell_y    25.60
+## roll_dumbbell       18.96
+## accel_forearm_x     17.84
+## magnet_dumbbell_x   17.46
+## accel_dumbbell_z    15.64
+## magnet_belt_z       15.49
+## accel_belt_z        15.27
+## magnet_belt_y       14.09
+## magnet_forearm_z    13.54
+## yaw_arm             13.29
+## gyros_belt_z        11.08
+## magnet_belt_x       10.79
+## gyros_dumbbell_y     9.57
+</code></pre>
+
+<p>The roll sensor from the belt is by far the most important sensor regarding
+to the random forest model, followed by the pitch sensor on the forearm and the 
+yaw sensor on the belt.</p>
+
+<p>There performance of the random forest model actually is so good that
+training additional models (stacking,
+ensemble learning) is probably superfluous, but just for the sake of practice,
+I will also fit two more models.</p>
+
+<h3>Multinomial regression model</h3>
+
+<p>A multinomial regression model is much more rigorous and doesn&#39;t take into
+account interactions between variables by default. Including all interactions
+in the model formula resulted in the algorithm being unable to calculate
+initial values for the parameters, so we will also fit a model with only 
+main effects here.</p>
+
+<pre><code class="r">set.seed(21)
+caret.mn &lt;- train(classe ~ roll_belt + pitch_belt + yaw_belt + total_accel_belt + 
+    gyros_belt_x + gyros_belt_y + gyros_belt_z + accel_belt_x + accel_belt_y + 
+    accel_belt_z + magnet_belt_x + magnet_belt_y + magnet_belt_z + roll_arm + 
+    pitch_arm + yaw_arm + total_accel_arm + gyros_arm_x + gyros_arm_y + gyros_arm_z + 
+    accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + 
+    magnet_arm_z + roll_dumbbell + pitch_dumbbell + yaw_dumbbell + gyros_dumbbell_x + 
+    gyros_dumbbell_y + gyros_dumbbell_z + accel_dumbbell_x + accel_dumbbell_y + 
+    accel_dumbbell_z + magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z + 
+    roll_forearm + pitch_forearm + yaw_forearm + total_accel_forearm + gyros_forearm_x + 
+    gyros_forearm_y + gyros_forearm_z + accel_forearm_x + accel_forearm_y + 
+    accel_forearm_z + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, 
+    data = dat.train, method = &quot;multinom&quot;, trace = FALSE)
+</code></pre>
+
+<p>Training is much faster (time: 5 minutes on my machine). After we have the model,
+we can predict how the dumbbel curls were performed (classes)&hellip;</p>
+
+<pre><code class="r">pred.caret.mn.train &lt;- predict(caret.mn$finalModel)
+pred.caret.mn.val &lt;- predict(caret.mn$finalModel, newdata = dat.val)
+</code></pre>
+
+<p>&hellip; and inspect predcition accuracy in the training data:</p>
+
+<pre><code class="r">confusionMatrix(pred.caret.mn.train, dat.train$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1452  204  111   97  105
+##          B   63  562   67    9  100
+##          C  165  227  685  184   93
+##          D   79   32  144  645   91
+##          E   64  214  110  114  787
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.645         
+##                  95% CI : (0.633, 0.657)
+##     No Information Rate : 0.285         
+##     P-Value [Acc &gt; NIR] : &lt;2e-16        
+##                                         
+##                   Kappa : 0.55          
+##  Mcnemar&#39;s Test P-Value : &lt;2e-16        
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.796   0.4536    0.613    0.615    0.669
+## Specificity             0.887   0.9537    0.873    0.935    0.904
+## Pos Pred Value          0.737   0.7016    0.506    0.651    0.611
+## Neg Pred Value          0.916   0.8792    0.914    0.925    0.924
+## Prevalence              0.285   0.1935    0.174    0.164    0.184
+## Detection Rate          0.227   0.0878    0.107    0.101    0.123
+## Detection Prevalence    0.307   0.1251    0.211    0.155    0.201
+## Balanced Accuracy       0.842   0.7037    0.743    0.775    0.787
+</code></pre>
+
+<p>The performance is actually much lower than compared with the random forest model.
+We of course also have to look at the performance in the validation data set:</p>
+
+<pre><code class="r">confusionMatrix(pred.caret.mn.val, dat.val$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1435  208  107  119  105
+##          B   67  567   72    9  107
+##          C  170  226  681  167  108
+##          D   88   33  150  635  104
+##          E   64  206  107  119  752
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.635         
+##                  95% CI : (0.623, 0.647)
+##     No Information Rate : 0.285         
+##     P-Value [Acc &gt; NIR] : &lt;2e-16        
+##                                         
+##                   Kappa : 0.538         
+##  Mcnemar&#39;s Test P-Value : &lt;2e-16        
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.787   0.4573    0.610   0.6053    0.639
+## Specificity             0.882   0.9506    0.873   0.9300    0.905
+## Pos Pred Value          0.727   0.6898    0.504   0.6287    0.603
+## Neg Pred Value          0.912   0.8795    0.914   0.9233    0.918
+## Prevalence              0.285   0.1936    0.174   0.1638    0.184
+## Detection Rate          0.224   0.0885    0.106   0.0991    0.117
+## Detection Prevalence    0.308   0.1283    0.211   0.1577    0.195
+## Balanced Accuracy       0.835   0.7039    0.741   0.7677    0.772
+</code></pre>
+
+<p>In the validation data set, performance is a little worse, but not by a lot.</p>
+
+<p>In terms of variable importance, we see some differences compared to the 
+random forest model:</p>
+
+<pre><code class="r">varImp(caret.mn)
+</code></pre>
+
+<pre><code>## multinom variable importance
+## 
+##   only 20 most important variables shown (out of 51)
+## 
+##                     Overall
+## total_accel_belt     100.00
+## pitch_belt            58.88
+## roll_belt             56.68
+## accel_belt_y          36.73
+## yaw_belt              36.12
+## gyros_arm_x           31.15
+## accel_belt_x          21.38
+## accel_belt_z          17.90
+## gyros_dumbbell_y      16.74
+## total_accel_arm       14.57
+## gyros_arm_y           14.08
+## gyros_forearm_x       13.89
+## total_accel_forearm   13.68
+## magnet_belt_x         13.03
+## magnet_dumbbell_z     12.63
+## gyros_forearm_y       12.61
+## pitch_forearm         11.23
+## magnet_belt_z          8.82
+## yaw_dumbbell           8.49
+## accel_dumbbell_x       8.27
+</code></pre>
+
+<p>For the multinomial model (which assumes linear relationships and only 
+main effects, in this case), the total acceleration as measured by the belt
+sensor is the most important variable, by far. It is followed by the pitch
+sensor and the roll sensor of the belt. The latter was identified as 
+the most important variable by the random forest model.</p>
+
+<h3>K nearest neighbor</h3>
+
+<p>As a third (and final) algorithm, we will be training a k-nearest-neighbor
+algorithm. Again, we will be using the standard settings from <code>caret</code>&#39;s 
+<code>train()</code> function, which also figures out an acceptable parameter value
+for the number of neighbors <em>k</em> that will be used for prediction later.</p>
+
+<pre><code class="r">set.seed(55)
+caret.knn &lt;- train(classe ~ roll_belt + pitch_belt + yaw_belt + total_accel_belt + 
+    gyros_belt_x + gyros_belt_y + gyros_belt_z + accel_belt_x + accel_belt_y + 
+    accel_belt_z + magnet_belt_x + magnet_belt_y + magnet_belt_z + roll_arm + 
+    pitch_arm + yaw_arm + total_accel_arm + gyros_arm_x + gyros_arm_y + gyros_arm_z + 
+    accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + 
+    magnet_arm_z + roll_dumbbell + pitch_dumbbell + yaw_dumbbell + gyros_dumbbell_x + 
+    gyros_dumbbell_y + gyros_dumbbell_z + accel_dumbbell_x + accel_dumbbell_y + 
+    accel_dumbbell_z + magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z + 
+    roll_forearm + pitch_forearm + yaw_forearm + total_accel_forearm + gyros_forearm_x + 
+    gyros_forearm_y + gyros_forearm_z + accel_forearm_x + accel_forearm_y + 
+    accel_forearm_z + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, 
+    data = dat.train, method = &quot;knn&quot;)
+</code></pre>
+
+<p>The final value for <em>k</em> chosen by the algorithm was <em>k=5</em>.
+Training time was about 2 minutes.</p>
+
+<p>In order to predict the class of the exercise (<code>classe</code> variable), we need some
+additional code. The knn algorithm returns the probability for each class, so we
+need to select the class that has the highest probability. In case two classes
+have the same probability, we randomly choose a class (in order not to 
+make a systematic error.)</p>
+
+<pre><code class="r">pred.caret.knn.train.raw &lt;- predict(caret.knn$finalModel, newdata = dat.train[-1])
+pred.caret.knn.train &lt;- apply(pred.caret.knn.train.raw, 1, function(i) colnames(pred.caret.knn.train.raw)[sample(which(i == 
+    max(i)), size = 1)])
+pred.caret.knn.val.raw &lt;- predict(caret.knn$finalModel, newdata = dat.val[-1])
+pred.caret.knn.val &lt;- apply(pred.caret.knn.val.raw, 1, function(i) colnames(pred.caret.knn.val.raw)[sample(which(i == 
+    max(i)), size = 1)])
+</code></pre>
+
+<p>Now we can inspect the performance in the training set:</p>
+
+<pre><code class="r">confusionMatrix(pred.caret.knn.train, dat.train$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1762  614  371  270  258
+##          B   29  578  386  249  248
+##          C   16   28  339  274  226
+##          D   11   12   16  252  212
+##          E    5    7    5    4  232
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.494         
+##                  95% CI : (0.482, 0.506)
+##     No Information Rate : 0.285         
+##     P-Value [Acc &gt; NIR] : &lt;2e-16        
+##                                         
+##                   Kappa : 0.339         
+##  Mcnemar&#39;s Test P-Value : &lt;2e-16        
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.967   0.4665   0.3035   0.2402   0.1973
+## Specificity             0.670   0.8234   0.8971   0.9531   0.9960
+## Pos Pred Value          0.538   0.3879   0.3839   0.5010   0.9170
+## Neg Pred Value          0.981   0.8655   0.8591   0.8649   0.8465
+## Prevalence              0.285   0.1935   0.1744   0.1638   0.1836
+## Detection Rate          0.275   0.0903   0.0529   0.0394   0.0362
+## Detection Prevalence    0.511   0.2327   0.1379   0.0785   0.0395
+## Balanced Accuracy       0.818   0.6450   0.6003   0.5967   0.5966
+</code></pre>
+
+<p>Accuracy is even lower than for the multinomial model above already in the
+training set, and things don&#39;t look any better in the validation set:</p>
+
+<pre><code class="r">confusionMatrix(pred.caret.knn.val, dat.val$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1713  596  428  297  270
+##          B   45  524  323  253  280
+##          C   36   59  331  241  218
+##          D   22   37   28  250  195
+##          E    8   24    7    8  213
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.473         
+##                  95% CI : (0.461, 0.485)
+##     No Information Rate : 0.285         
+##     P-Value [Acc &gt; NIR] : &lt;2e-16        
+##                                         
+##                   Kappa : 0.311         
+##  Mcnemar&#39;s Test P-Value : &lt;2e-16        
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.939   0.4226   0.2963    0.238   0.1811
+## Specificity             0.653   0.8256   0.8953    0.947   0.9910
+## Pos Pred Value          0.518   0.3677   0.3740    0.470   0.8192
+## Neg Pred Value          0.964   0.8563   0.8576    0.864   0.8433
+## Prevalence              0.285   0.1936   0.1744    0.164   0.1836
+## Detection Rate          0.267   0.0818   0.0517    0.039   0.0333
+## Detection Prevalence    0.516   0.2224   0.1382    0.083   0.0406
+## Balanced Accuracy       0.796   0.6241   0.5958    0.593   0.5861
+</code></pre>
+
+<p>As a next step, we will do the stacking of the models by training the
+meta-learner.</p>
+
+<h2>Training the meta-learner (stacking the models)</h2>
+
+<p>Although the performance of the initial random forest model above
+was quite impressive, and the performance of the other models was 
+significantly worse, we still use all the models for building an 
+ensemble model by stacking the predictions together 
+(basically, just for the sake of doing it). 
+For that purpose, we will create a new data frame containing the 
+predictions of the individual models <em>on the training set</em>, as well
+as the correct classes of the training set. Note that this is not the way it was
+shown in the lectures, but on other sources I consulted. It allows to train
+the stacked model on the training data alone, and evaluate the
+performance of the stacked model on the validation data set.</p>
+
+<pre><code class="r">dat.stack.train &lt;- data.frame(classe = dat.train$classe, pred.caret.rf = pred.caret.rf.train, 
+    pred.caret.mn = pred.caret.mn.train, pred.caret.knn = pred.caret.knn.train)  #,&#39;pred.fit.svm&#39;=pred.fit.svm.train)
+</code></pre>
+
+<p>Additionally, for getting a (kind of) out-of-sample error rate,
+we build a data frame of the predictions of the indivdual models
+on the validation set, together with the true classes of the 
+validation data set.</p>
+
+<pre><code class="r">dat.stack.val &lt;- data.frame(classe = dat.val$classe, pred.caret.rf = pred.caret.rf.val, 
+    pred.caret.mn = pred.caret.mn.val, pred.caret.knn = pred.caret.knn.val)  #,&#39;pred.fit.svm&#39;=pred.fit.svm.val1)
+</code></pre>
+
+<p>In order to use this for predicting the classes with the meta leaner,
+we actually need to generate dummy variables for all of the predictors,
+which is achieved by the <code>model.matrix()</code> function:</p>
+
+<pre><code class="r">## convert to model matrix (for prediction of new data):
+dat.stack.val.mm &lt;- model.matrix(classe ~ ., data = dat.stack.val)
+head(dat.stack.val.mm)
+</code></pre>
+
+<pre><code>##    (Intercept) pred.caret.rfB pred.caret.rfC pred.caret.rfD pred.caret.rfE
+## 6            1              0              0              0              0
+## 9            1              0              0              0              0
+## 11           1              0              0              0              0
+## 15           1              0              0              0              0
+## 26           1              0              0              0              0
+## 33           1              0              0              0              0
+##    pred.caret.mnB pred.caret.mnC pred.caret.mnD pred.caret.mnE
+## 6               0              0              0              0
+## 9               0              0              0              0
+## 11              0              0              0              0
+## 15              0              0              0              0
+## 26              0              0              0              0
+## 33              0              0              0              0
+##    pred.caret.knnB pred.caret.knnC pred.caret.knnD pred.caret.knnE
+## 6                0               0               0               0
+## 9                0               0               0               0
+## 11               0               0               0               0
+## 15               0               0               0               0
+## 26               0               0               0               0
+## 33               0               0               0               0
+</code></pre>
+
+<p>So now we have the data to train (and also test) the meta learner,
+so we can start with training it on the data frame that contains 
+only the training data. We will use a random forest model as the meta
+learner in this case.</p>
+
+<pre><code class="r">set.seed(78)
+fit.stack.rf &lt;- train(classe ~ ., data = dat.stack.train, method = &quot;rf&quot;)
+</code></pre>
+
+<p>Now we create a vector of predictions of the ensemble model, both for the
+training data (which was used to train the meta learner), as well as
+for the validation data:</p>
+
+<pre><code class="r">pred.fit.stack.rf.train &lt;- predict(fit.stack.rf$finalModel)
+pred.fit.stack.rf.val &lt;- predict(fit.stack.rf$finalModel, newdata = dat.stack.val.mm)
+</code></pre>
+
+<p>Now let&#39;s look at the in-sample performance of the meta learner in the
+training data:</p>
+
+<pre><code class="r">confusionMatrix(pred.fit.stack.rf.train, dat.stack.train$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1816   24    0    0    0
+##          B    4 1201   21    1    4
+##          C    2   12 1090   21    3
+##          D    0    0    6 1026    6
+##          E    1    2    0    1 1163
+## 
+## Overall Statistics
+##                                        
+##                Accuracy : 0.983        
+##                  95% CI : (0.98, 0.986)
+##     No Information Rate : 0.285        
+##     P-Value [Acc &gt; NIR] : &lt;2e-16       
+##                                        
+##                   Kappa : 0.979        
+##  Mcnemar&#39;s Test P-Value : NA           
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.996    0.969    0.976    0.978    0.989
+## Specificity             0.995    0.994    0.993    0.998    0.999
+## Pos Pred Value          0.987    0.976    0.966    0.988    0.997
+## Neg Pred Value          0.998    0.993    0.995    0.996    0.998
+## Prevalence              0.285    0.193    0.174    0.164    0.184
+## Detection Rate          0.284    0.188    0.170    0.160    0.182
+## Detection Prevalence    0.287    0.192    0.176    0.162    0.182
+## Balanced Accuracy       0.995    0.982    0.984    0.988    0.994
+</code></pre>
+
+<p>The performance is quite impressive, and it is higher than each of the 
+individual models (even the random forest model). But in order to really
+judge the performance, we need to look at the predictions of the meta
+learner for the validation data:</p>
+
+<pre><code class="r">confusionMatrix(pred.fit.stack.rf.val, dat.stack.val$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1809   16    0    0    0
+##          B    3 1206   16    1    2
+##          C   10   18 1100   23    5
+##          D    1    0    1 1024    5
+##          E    1    0    0    1 1164
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.984         
+##                  95% CI : (0.981, 0.987)
+##     No Information Rate : 0.285         
+##     P-Value [Acc &gt; NIR] : &lt; 2e-16       
+##                                         
+##                   Kappa : 0.98          
+##  Mcnemar&#39;s Test P-Value : 1.22e-07      
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.992    0.973    0.985    0.976    0.990
+## Specificity             0.997    0.996    0.989    0.999    1.000
+## Pos Pred Value          0.991    0.982    0.952    0.993    0.998
+## Neg Pred Value          0.997    0.993    0.997    0.995    0.998
+## Prevalence              0.285    0.194    0.174    0.164    0.184
+## Detection Rate          0.282    0.188    0.172    0.160    0.182
+## Detection Prevalence    0.285    0.192    0.180    0.161    0.182
+## Balanced Accuracy       0.994    0.984    0.987    0.987    0.995
+</code></pre>
+
+<p>The performance measures show a really good performance of the stacked
+model even in the validation data. Accuracy is as high as .984, which 
+again is higher as for each of the individual models.</p>
+
+<h2>Testing the meta learner: Out-of-sample error</h2>
+
+<p>As a final estimate for the out-of-sample error, we now will look at the
+performance of the meta learner in the testing data, which we have not 
+touched yet.</p>
+
+<p>First, we will create vectors of predictions for each of the individual
+models, just like above:</p>
+
+<pre><code class="r">pred.caret.rf.test &lt;- predict(caret.rf$finalModel, newdata = dat.test)
+
+pred.caret.mn.test &lt;- predict(caret.mn$finalModel, newdata = dat.test)
+
+pred.caret.knn.test.raw &lt;- predict(caret.knn$finalModel, newdata = dat.test[-1])
+pred.caret.knn.test &lt;- apply(pred.caret.knn.test.raw, 1, function(i) colnames(pred.caret.knn.test.raw)[sample(which(i == 
+    max(i)), size = 1)])
+</code></pre>
+
+<p>Then we will just build a data frame containing these predictions of the 
+individual model in the testing data, together with the <code>classe</code> variable
+of the testing data. We again need to build dummy variables for the meta
+learner to be able to use the data.</p>
+
+<pre><code class="r">dat.stack.test &lt;- data.frame(classe = dat.test$classe, pred.caret.rf = pred.caret.rf.test, 
+    pred.caret.mn = pred.caret.mn.test, pred.caret.knn = pred.caret.knn.test)
+
+## convert to model matrix (for prediction of new data):
+dat.stack.test.mm &lt;- model.matrix(classe ~ ., data = dat.stack.test)
+</code></pre>
+
+<p>Now we can make the predictions for the testing data:</p>
+
+<pre><code class="r">pred.fit.stack.rf.test &lt;- predict(fit.stack.rf$finalModel, newdata = dat.stack.test.mm)
+</code></pre>
+
+<p>To finally get an estimate of the out-of-sample error, with data that we
+didn&#39;t touch yet, we compute the performance measures on the testing data:</p>
+
+<pre><code class="r">confusionMatrix(pred.fit.stack.rf.test, dat.stack.test$classe)
+</code></pre>
+
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1813   21    0    0    0
+##          B    2 1209    9    1    1
+##          C    8    9 1109   20    1
+##          D    0    0    0 1027    6
+##          E    1    0    0    1 1168
+## 
+## Overall Statistics
+##                                        
+##                Accuracy : 0.988        
+##                  95% CI : (0.984, 0.99)
+##     No Information Rate : 0.285        
+##     P-Value [Acc &gt; NIR] : &lt;2e-16       
+##                                        
+##                   Kappa : 0.984        
+##  Mcnemar&#39;s Test P-Value : NA           
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.994    0.976    0.992    0.979    0.993
+## Specificity             0.995    0.997    0.993    0.999    1.000
+## Pos Pred Value          0.989    0.989    0.967    0.994    0.998
+## Neg Pred Value          0.998    0.994    0.998    0.996    0.998
+## Prevalence              0.285    0.193    0.175    0.164    0.184
+## Detection Rate          0.283    0.189    0.173    0.160    0.182
+## Detection Prevalence    0.286    0.191    0.179    0.161    0.183
+## Balanced Accuracy       0.995    0.987    0.992    0.989    0.996
+</code></pre>
+
+<p>Even in the testing data, the stacked model achieves an accuracy of .988,
+which is even higher than the accuracy both in the training and 
+in the validation data set (almost certainly a random fluctuation).</p>
+
+</body>
+
+</html>
+

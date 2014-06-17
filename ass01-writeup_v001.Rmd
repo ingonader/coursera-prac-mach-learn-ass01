@@ -1,0 +1,417 @@
+Prediction of Activity Classes from the Weight Lifting Exercise Dataset (HAR)
+========================================================
+
+The Weight Lifting Exercise Dataset is used for Human Activity Recognition (HAR) 
+and contains data from accelerometeres attached to the test subjects forearm, 
+arm, and belt. The subjects were asked to perform dumbbell curls in five different
+manners: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E). This information is contained in the `classe` variable of the dataset.
+
+Goal of this analysis is to predict the class from the available data. The data 
+was downloaded from the [Coursera page](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv). 
+
+Prerequisites
+------------------------------------------------------------
+
+In order to perform the analysis, some `R` libraries need to be loaded. Most of the
+analyses are carried out with the `caret` package:
+
+```{r load-libs, results="hide", warning=FALSE}
+library(caret)
+library(randomForest)
+library(nnet)
+library(e1071)
+```
+
+Preprocessing the data
+------------------------------------------------------------
+
+First, the downloaded data is read into `R` via the `read.csv()` function:
+
+```{r load-data, cache=TRUE}
+path.raw <- "C:/data-sync/coursera/data-science-08-machine-learning/assignment01/"
+path.dat <- paste0(path.raw, "")
+setwd(path.dat)
+dat.all.raw <- read.csv("pml-training.csv")
+```
+
+The data seems to contain individual measurements as well as summary measurements,
+as indicated by the fact that some variables are missing when the variable `new_window`
+has the value `"no"` (not shown here for brevity). These missing variables relate to 
+skew and kurtosis of measurements, which can only be calulated as a summary 
+on multiple measurements. These measurements that are summary measures (as indicated by `new_window=="yes"`) are removed from the data.
+
+```{r r-preprocess, cache=TRUE}
+dat.all <- subset(dat.all.raw, dat.all.raw$new_window != "yes")
+```
+
+```{r var-select, cache=TRUE}
+## vars:
+vars.all <- c("classe", "roll_belt", "pitch_belt", "yaw_belt", "total_accel_belt", "gyros_belt_x", "gyros_belt_y", "gyros_belt_z", "accel_belt_x", "accel_belt_y", "accel_belt_z", "magnet_belt_x", "magnet_belt_y", "magnet_belt_z", "roll_arm", "pitch_arm", "yaw_arm", "total_accel_arm", "gyros_arm_x", "gyros_arm_y", "gyros_arm_z", "accel_arm_x", "accel_arm_y", "accel_arm_z", "magnet_arm_x", "magnet_arm_y", "magnet_arm_z", "roll_dumbbell", "pitch_dumbbell", "yaw_dumbbell", "gyros_dumbbell_x", "gyros_dumbbell_y", "gyros_dumbbell_z", "accel_dumbbell_x", "accel_dumbbell_y", "accel_dumbbell_z", "magnet_dumbbell_x", "magnet_dumbbell_y", "magnet_dumbbell_z", "roll_forearm", "pitch_forearm", "yaw_forearm", "total_accel_forearm", "gyros_forearm_x", "gyros_forearm_y", "gyros_forearm_z", "accel_forearm_x", "accel_forearm_y", "accel_forearm_z", "magnet_forearm_x", "magnet_forearm_y", "magnet_forearm_z" )
+
+dat.all.clean <- dat.all[vars.all]
+```
+
+Splitting the data in training, validation, and test set
+------------------------------------------------------------
+
+In order to train the machine learning models, the data is split into three parts. 
+The training set includes a third of the data, a validation set consists of 
+another third, and finally a test set consisting of the final third of the data. 
+The validation set will 
+be used to evaluate the out-of-sample error of the machine learning models and 
+to train a stacked model.
+
+The fraction of a third of the data for the training set was chosen
+due to the fact that computing the models (especially the random forest models,
+see below) takes quite some time on my machine (about 30 min).
+
+```{r split-data, cache=TRUE}
+set.seed(42)
+wch.fold <- createFolds(dat.all.clean$classe, k=3, list=FALSE)
+dat.train <- dat.all.clean[wch.fold==1,]
+dat.val <- dat.all.clean[wch.fold==2,]
+dat.test <- dat.all.clean[wch.fold==3,]
+```
+
+Training individual models
+------------------------------------------------------------
+
+This section describes the different models that were used. All of the models
+were trained on the training data set, and then used to predict the classes
+of the validation data set to get a first hint at the out-of-sample error. 
+
+### Random forest model
+
+Random forest models are widely used in machine learning because they often 
+give very good out-of-the box predictions without knowing much about the data,
+as it is not influenced by outliers, and also takes into account 
+interactions by design.
+Hence, a random forest model is used as a starting point here. 
+
+It is fitted with the standard options of the `caret` package, which uses
+25 iterations of bootstrapping within the training data set to select 
+the best model. 
+
+```{r random-forest-train, cache=TRUE}
+set.seed(12)
+caret.rf <- train(classe ~ roll_belt + pitch_belt + yaw_belt + total_accel_belt + 
+  			gyros_belt_x + gyros_belt_y + gyros_belt_z + 
+				accel_belt_x + accel_belt_y + accel_belt_z + 
+				magnet_belt_x + magnet_belt_y + magnet_belt_z + 
+				roll_arm + pitch_arm + yaw_arm + total_accel_arm + 
+				gyros_arm_x + gyros_arm_y + gyros_arm_z + accel_arm_x + 
+				accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + 
+				magnet_arm_z + roll_dumbbell + pitch_dumbbell + yaw_dumbbell + 
+				gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + 
+				accel_dumbbell_x + accel_dumbbell_y + accel_dumbbell_z + 
+				magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z + 
+				roll_forearm + pitch_forearm + yaw_forearm + total_accel_forearm + 
+				gyros_forearm_x + gyros_forearm_y + gyros_forearm_z + 
+				accel_forearm_x + accel_forearm_y + accel_forearm_z + 
+				magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, 
+		data=dat.train, method="rf")
+```
+
+The training time of this algorithm is actually quite long, on my machine this
+took 33 minutes. After training the model, we can predict the classes in the
+training data set and in the validation data set:
+
+```{r random-forest-predict, cache=TRUE}
+pred.caret.rf.train <- predict(caret.rf$finalModel)
+pred.caret.rf.val <- predict(caret.rf$finalModel, newdata=dat.val)
+```
+
+The performance in the training set is really good:
+
+```{r random-forest-pred-train, cache=TRUE}
+confusionMatrix(pred.caret.rf.train, dat.train$classe)
+```
+
+Actually, the performance is so good that it seems likely we have overfitted
+our model to the data. To test this assumption, we check on the performance
+of the model in the validation data set.
+
+```{r random-forest-pred-val, cache=TRUE}
+confusionMatrix(pred.caret.rf.val, dat.val$classe)
+```
+
+Given that the performance of the prediction algorithm remains almost unchanged
+in the validation data set, we seem not to have overfitted the data. 
+
+Regarding the variable importance gives some clue to which variables 
+are most important:
+
+```{r random-forest-varimp, cache=TRUE}
+varImp(caret.rf)
+```
+
+The roll sensor from the belt is by far the most important sensor regarding
+to the random forest model, followed by the pitch sensor on the forearm and the 
+yaw sensor on the belt.
+
+There performance of the random forest model actually is so good that
+training additional models (stacking,
+ensemble learning) is probably superfluous, but just for the sake of practice,
+I will also fit two more models.
+
+### Multinomial regression model
+
+A multinomial regression model is much more rigorous and doesn't take into
+account interactions between variables by default. Including all interactions
+in the model formula resulted in the algorithm being unable to calculate
+initial values for the parameters, so we will also fit a model with only 
+main effects here.
+
+```{r mn-train, cache=TRUE}
+set.seed(21)
+caret.mn <- train(classe ~ roll_belt + pitch_belt + yaw_belt + total_accel_belt + 
+  			gyros_belt_x + gyros_belt_y + gyros_belt_z + 
+				accel_belt_x + accel_belt_y + accel_belt_z + 
+				magnet_belt_x + magnet_belt_y + magnet_belt_z + 
+				roll_arm + pitch_arm + yaw_arm + total_accel_arm + 
+				gyros_arm_x + gyros_arm_y + gyros_arm_z + accel_arm_x + 
+				accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + 
+				magnet_arm_z + roll_dumbbell + pitch_dumbbell + yaw_dumbbell + 
+				gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + 
+				accel_dumbbell_x + accel_dumbbell_y + accel_dumbbell_z + 
+				magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z + 
+				roll_forearm + pitch_forearm + yaw_forearm + total_accel_forearm + 
+				gyros_forearm_x + gyros_forearm_y + gyros_forearm_z + 
+				accel_forearm_x + accel_forearm_y + accel_forearm_z + 
+				magnet_forearm_x + magnet_forearm_y + magnet_forearm_z,
+		data=dat.train, method="multinom", trace=FALSE)
+```
+
+Training is much faster (time: 5 minutes on my machine). After we have the model,
+we can predict how the dumbbel curls were performed (classes)...
+
+```{r mn-predict, cache=TRUE}
+pred.caret.mn.train <- predict(caret.mn$finalModel)
+pred.caret.mn.val <- predict(caret.mn$finalModel, newdata=dat.val)
+```
+
+... and inspect predcition accuracy in the training data:
+
+```{r mn-pred-train, cache=TRUE}
+confusionMatrix(pred.caret.mn.train, dat.train$classe)
+```
+
+The performance is actually much lower than compared with the random forest model.
+We of course also have to look at the performance in the validation data set:
+
+```{r mn-pred-val, cache=TRUE}
+confusionMatrix(pred.caret.mn.val, dat.val$classe)
+```
+
+In the validation data set, performance is a little worse, but not by a lot.
+
+In terms of variable importance, we see some differences compared to the 
+random forest model:
+
+```{r mn-varimp, cache=TRUE}
+varImp(caret.mn)
+```
+For the multinomial model (which assumes linear relationships and only 
+main effects, in this case), the total acceleration as measured by the belt
+sensor is the most important variable, by far. It is followed by the pitch
+sensor and the roll sensor of the belt. The latter was identified as 
+the most important variable by the random forest model.
+
+### K nearest neighbor
+
+As a third (and final) algorithm, we will be training a k-nearest-neighbor
+algorithm. Again, we will be using the standard settings from `caret`'s 
+`train()` function, which also figures out an acceptable parameter value
+for the number of neighbors *k* that will be used for prediction later.
+
+```{r knn-train, cache=TRUE}
+set.seed(55)
+caret.knn <-train(classe ~ roll_belt + pitch_belt + yaw_belt + total_accel_belt + 
+  			gyros_belt_x + gyros_belt_y + gyros_belt_z + 
+				accel_belt_x + accel_belt_y + accel_belt_z + 
+				magnet_belt_x + magnet_belt_y + magnet_belt_z + 
+				roll_arm + pitch_arm + yaw_arm + total_accel_arm + 
+				gyros_arm_x + gyros_arm_y + gyros_arm_z + accel_arm_x + 
+				accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + 
+				magnet_arm_z + roll_dumbbell + pitch_dumbbell + yaw_dumbbell + 
+				gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + 
+				accel_dumbbell_x + accel_dumbbell_y + accel_dumbbell_z + 
+				magnet_dumbbell_x + magnet_dumbbell_y + magnet_dumbbell_z + 
+				roll_forearm + pitch_forearm + yaw_forearm + total_accel_forearm + 
+				gyros_forearm_x + gyros_forearm_y + gyros_forearm_z + 
+				accel_forearm_x + accel_forearm_y + accel_forearm_z + 
+				magnet_forearm_x + magnet_forearm_y + magnet_forearm_z,
+		data=dat.train,
+		method="knn")
+```
+
+The final value for *k* chosen by the algorithm was *k=5*.
+Training time was about 2 minutes.
+
+In order to predict the class of the exercise (`classe` variable), we need some
+additional code. The knn algorithm returns the probability for each class, so we
+need to select the class that has the highest probability. In case two classes
+have the same probability, we randomly choose a class (in order not to 
+make a systematic error.)
+
+```{r knn-predict, cache=TRUE}
+pred.caret.knn.train.raw <- predict(caret.knn$finalModel, newdata=dat.train[-1])
+pred.caret.knn.train <- apply(pred.caret.knn.train.raw, 1, function(i) colnames(pred.caret.knn.train.raw)[sample(which(i == max(i)), size=1)] )
+pred.caret.knn.val.raw <- predict(caret.knn$finalModel, newdata=dat.val[-1])
+pred.caret.knn.val <- apply(pred.caret.knn.val.raw, 1, function(i) colnames(pred.caret.knn.val.raw)[sample(which(i == max(i)), size=1)] )
+```
+
+Now we can inspect the performance in the training set:
+
+```{r knn-pred-train, cache=TRUE}
+confusionMatrix(pred.caret.knn.train, dat.train$classe)
+```
+
+Accuracy is even lower than for the multinomial model above already in the
+training set, and things don't look any better in the validation set:
+
+```{r knn-pred-val, cache=TRUE}
+confusionMatrix(pred.caret.knn.val, dat.val$classe)
+```
+
+As a next step, we will do the stacking of the models by training the
+meta-learner.
+
+Training the meta-learner (stacking the models)
+------------------------------------------------------------
+
+Although the performance of the initial random forest model above
+was quite impressive, and the performance of the other models was 
+significantly worse, we still use all the models for building an 
+ensemble model by stacking the predictions together 
+(basically, just for the sake of doing it). 
+For that purpose, we will create a new data frame containing the 
+predictions of the individual models *on the training set*, as well
+as the correct classes of the training set. Note that this is not the way it was
+shown in the lectures, but on other sources I consulted. It allows to train
+the stacked model on the training data alone, and evaluate the
+performance of the stacked model on the validation data set.
+
+```{r stack-training, cache=TRUE}
+dat.stack.train <- data.frame(
+  	"classe"=dat.train$classe,
+		"pred.caret.rf"=pred.caret.rf.train,
+		"pred.caret.mn"=pred.caret.mn.train,
+		"pred.caret.knn"=pred.caret.knn.train) #,"pred.fit.svm"=pred.fit.svm.train)
+```
+
+Additionally, for getting a (kind of) out-of-sample error rate,
+we build a data frame of the predictions of the indivdual models
+on the validation set, together with the true classes of the 
+validation data set.
+
+```{r stack-val, cache=TRUE}
+dat.stack.val <- data.frame(
+  	"classe"=dat.val$classe,
+		"pred.caret.rf"=pred.caret.rf.val,
+		"pred.caret.mn"=pred.caret.mn.val,
+		"pred.caret.knn"=pred.caret.knn.val) #,"pred.fit.svm"=pred.fit.svm.val1)
+```
+
+In order to use this for predicting the classes with the meta leaner,
+we actually need to generate dummy variables for all of the predictors,
+which is achieved by the `model.matrix()` function:
+
+```{r stack-val-mm, cache=TRUE}
+## convert to model matrix (for prediction of new data):
+dat.stack.val.mm <- model.matrix(classe ~ ., data=dat.stack.val)
+head(dat.stack.val.mm)
+```
+
+So now we have the data to train (and also test) the meta learner,
+so we can start with training it on the data frame that contains 
+only the training data. We will use a random forest model as the meta
+learner in this case.
+
+```{r train-meta-learner, cache=TRUE}
+set.seed(78)
+fit.stack.rf <- train(classe ~ ., data=dat.stack.train, method="rf")
+```
+
+Now we create a vector of predictions of the ensemble model, both for the
+training data (which was used to train the meta learner), as well as
+for the validation data:
+
+```{r stack-predict, cache=TRUE}
+pred.fit.stack.rf.train <- predict(fit.stack.rf$finalModel)
+pred.fit.stack.rf.val <- predict(fit.stack.rf$finalModel, newdata=dat.stack.val.mm)
+```
+
+Now let's look at the in-sample performance of the meta learner in the
+training data:
+
+```{r stack-pred-train, cache=TRUE}
+confusionMatrix(pred.fit.stack.rf.train, dat.stack.train$classe)
+```
+
+The performance is quite impressive, and it is higher than each of the 
+individual models (even the random forest model). But in order to really
+judge the performance, we need to look at the predictions of the meta
+learner for the validation data:
+
+```{r stack-pred-val, cache=TRUE}
+confusionMatrix(pred.fit.stack.rf.val, dat.stack.val$classe)
+```
+
+The performance measures show a really good performance of the stacked
+model even in the validation data. Accuracy is as high as .984, which 
+again is higher as for each of the individual models.
+
+Testing the meta learner: Out-of-sample error
+-------------------------------------
+
+As a final estimate for the out-of-sample error, we now will look at the
+performance of the meta learner in the testing data, which we have not 
+touched yet.
+
+First, we will create vectors of predictions for each of the individual
+models, just like above:
+
+```{r stack-test-predict, cache=TRUE}
+pred.caret.rf.test <- predict(caret.rf$finalModel, newdata=dat.test)
+
+pred.caret.mn.test <- predict(caret.mn$finalModel, newdata=dat.test)
+
+pred.caret.knn.test.raw <- predict(caret.knn$finalModel, newdata=dat.test[-1])
+pred.caret.knn.test <- apply(pred.caret.knn.test.raw, 1, function(i) colnames(pred.caret.knn.test.raw)[sample(which(i == max(i)), size=1)] )
+```
+
+Then we will just build a data frame containing these predictions of the 
+individual model in the testing data, together with the `classe` variable
+of the testing data. We again need to build dummy variables for the meta
+learner to be able to use the data.
+
+```{r stack-test-df, cache=TRUE}
+dat.stack.test <- data.frame(
+  	"classe"=dat.test$classe,
+		"pred.caret.rf"=pred.caret.rf.test,
+		"pred.caret.mn"=pred.caret.mn.test,
+		"pred.caret.knn"=pred.caret.knn.test)
+
+## convert to model matrix (for prediction of new data):
+dat.stack.test.mm <- model.matrix(classe ~ ., data=dat.stack.test)
+```
+
+Now we can make the predictions for the testing data:
+
+```{r stack-test-predict-vals, cache=TRUE}
+pred.fit.stack.rf.test <- predict(fit.stack.rf$finalModel, newdata=dat.stack.test.mm)
+```
+
+To finally get an estimate of the out-of-sample error, with data that we
+didn't touch yet, we compute the performance measures on the testing data:
+
+```{r stack-test-performanche, cache=TRUE}
+confusionMatrix(pred.fit.stack.rf.test, dat.stack.test$classe)
+```
+
+Even in the testing data, the stacked model achieves an accuracy of .988,
+which is even higher than the accuracy both in the training and 
+in the validation data set (almost certainly a random fluctuation).
+
+
