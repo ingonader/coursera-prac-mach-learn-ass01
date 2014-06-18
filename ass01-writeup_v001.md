@@ -2,11 +2,15 @@ Prediction of Activity Classes from the Weight Lifting Exercise Dataset (HAR)
 ========================================================
 
 The Weight Lifting Exercise Dataset is used for Human Activity Recognition (HAR) 
-and contains data from accelerometeres attached to the test subjects forearm, 
+and contains data from accelerometeres attached to the test subjects' forearm, 
 arm, and belt. The subjects were asked to perform dumbbell curls in five different
-manners: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E). This information is contained in the `classe` variable of the dataset.
+manners (classes): exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E). This information is contained in the `classe` variable of the dataset.
 
-Goal of this analysis is to predict the class from the available data. The data 
+Goal of this analysis is to predict the class from the available data. 
+For that purpose, we will train three models (random forest, multinomial
+regression, and k nearest neighbor) and build an ensemble model by stacking. 
+The data 
+
 was downloaded from the [Coursera page](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv). 
 
 Prerequisites
@@ -18,23 +22,7 @@ analyses are carried out with the `caret` package:
 
 ```r
 library(caret)
-```
-
-```
-## Loading required package: lattice
-## Loading required package: ggplot2
-```
-
-```r
 library(randomForest)
-```
-
-```
-## randomForest 4.6-7
-## Type rfNews() to see new features/changes/bug fixes.
-```
-
-```r
 library(nnet)
 library(e1071)
 ```
@@ -58,7 +46,7 @@ The data seems to contain individual measurements as well as summary measurement
 as indicated by the fact that some variables are missing when the variable `new_window`
 has the value `"no"` (not shown here for brevity). These missing variables relate to 
 skew and kurtosis of measurements, which can only be calulated as a summary 
-on multiple measurements. These measurements that are summary measures (as indicated by `new_window=="yes"`) are removed from the data.
+on multiple measurements. These summary measurements (`new_window=="yes"`) are removed from the data.
 
 
 ```r
@@ -121,7 +109,7 @@ of the validation data set to get a first hint at the out-of-sample error.
 
 Random forest models are widely used in machine learning because they often 
 give very good out-of-the box predictions without knowing much about the data,
-as it is not influenced by outliers, and also takes into account 
+as they is not influenced by outliers, and also take into account 
 interactions by design.
 Hence, a random forest model is used as a starting point here. 
 
@@ -144,10 +132,6 @@ caret.rf <- train(classe ~ roll_belt + pitch_belt + yaw_belt + total_accel_belt 
     gyros_forearm_y + gyros_forearm_z + accel_forearm_x + accel_forearm_y + 
     accel_forearm_z + magnet_forearm_x + magnet_forearm_y + magnet_forearm_z, 
     data = dat.train, method = "rf")
-```
-
-```
-## Warning: package 'e1071' was built under R version 3.0.3
 ```
 
 
@@ -256,36 +240,10 @@ are most important:
 
 
 ```r
-varImp(caret.rf)
+plot(varImp(caret.rf))
 ```
 
-```
-## rf variable importance
-## 
-##   only 20 most important variables shown (out of 51)
-## 
-##                   Overall
-## roll_belt          100.00
-## pitch_forearm       64.13
-## yaw_belt            60.32
-## magnet_dumbbell_z   50.53
-## pitch_belt          44.84
-## magnet_dumbbell_y   42.91
-## roll_forearm        36.30
-## accel_dumbbell_y    25.60
-## roll_dumbbell       18.96
-## accel_forearm_x     17.84
-## magnet_dumbbell_x   17.46
-## accel_dumbbell_z    15.64
-## magnet_belt_z       15.49
-## accel_belt_z        15.27
-## magnet_belt_y       14.09
-## magnet_forearm_z    13.54
-## yaw_arm             13.29
-## gyros_belt_z        11.08
-## magnet_belt_x       10.79
-## gyros_dumbbell_y     9.57
-```
+![plot of chunk random-forest-varimp](figure/random-forest-varimp.png) 
 
 
 The roll sensor from the belt is by far the most important sensor regarding
@@ -302,7 +260,7 @@ I will also fit two more models.
 A multinomial regression model is much more rigorous and doesn't take into
 account interactions between variables by default. Including all interactions
 in the model formula resulted in the algorithm being unable to calculate
-initial values for the parameters, so we will also fit a model with only 
+initial values for the parameters, so we will fit a model with only 
 main effects here.
 
 
@@ -425,36 +383,10 @@ random forest model:
 
 
 ```r
-varImp(caret.mn)
+plot(varImp(caret.mn))
 ```
 
-```
-## multinom variable importance
-## 
-##   only 20 most important variables shown (out of 51)
-## 
-##                     Overall
-## total_accel_belt     100.00
-## pitch_belt            58.88
-## roll_belt             56.68
-## accel_belt_y          36.73
-## yaw_belt              36.12
-## gyros_arm_x           31.15
-## accel_belt_x          21.38
-## accel_belt_z          17.90
-## gyros_dumbbell_y      16.74
-## total_accel_arm       14.57
-## gyros_arm_y           14.08
-## gyros_forearm_x       13.89
-## total_accel_forearm   13.68
-## magnet_belt_x         13.03
-## magnet_dumbbell_z     12.63
-## gyros_forearm_y       12.61
-## pitch_forearm         11.23
-## magnet_belt_z          8.82
-## yaw_dumbbell           8.49
-## accel_dumbbell_x       8.27
-```
+![plot of chunk mn-varimp](figure/mn-varimp.png) 
 
 For the multinomial model (which assumes linear relationships and only 
 main effects, in this case), the total acceleration as measured by the belt
@@ -601,11 +533,10 @@ Training the meta-learner (stacking the models)
 Although the performance of the initial random forest model above
 was quite impressive, and the performance of the other models was 
 significantly worse, we still use all the models for building an 
-ensemble model by stacking the predictions together 
-(basically, just for the sake of doing it). 
+ensemble model by stacking the predictions together. 
 For that purpose, we will create a new data frame containing the 
 predictions of the individual models *on the training set*, as well
-as the correct classes of the training set. Note that this is not the way it was
+as the correct classes *of the training set*. Note that this is not the way it was
 shown in the lectures, but on other sources I consulted. It allows to train
 the stacked model on the training data alone, and evaluate the
 performance of the stacked model on the validation data set.
